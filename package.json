@@ -1,0 +1,16 @@
+{
+  "name": "polymarket-webhook-server",
+  "version": "1.0.0",
+  "description": "Polymarket自动交易Webhook服务器",
+  "main": "apptest.js",
+  "scripts": {
+    "start": "node apptest.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "body-parser": "^1.20.2"
+  },
+  "author": "",
+  "license": "ISC"
+} 
