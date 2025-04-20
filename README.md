@@ -20,7 +20,7 @@
 6. **价格查询模块** (`check_price.py`): 查询市场价格
 7. **计算工具** (`math_utils.py`): 计算最优买入金额
 8. **环境检查模块** (`check_environment.py`): 启动前检查系统环境配置
-9. **Py-Clob-Client库** (`py-clob-client/`): Polymarket CLOB API的Python客户端
+9. **Py-Clob-Client库** (`py-clob-client/`): Polymarket CLOB API的Python客户端，已集成到本仓库中
 
 ## 目录结构
 
@@ -44,7 +44,12 @@ polymarket/
 │   └── webhook_last_error.json # 最近错误
 ├── package.json            # Node.js项目配置
 ├── package-lock.json       # Node.js依赖锁定
-└── py-clob-client/         # Polymarket API客户端
+└── py-clob-client/         # Polymarket API客户端（已集成到本仓库）
+    ├── py_clob_client/     # 客户端核心代码
+    ├── examples/           # 使用示例
+    ├── tests/              # 测试代码
+    ├── requirements.txt    # 客户端依赖
+    └── setup.py            # 安装脚本
 ```
 
 ## 安装步骤
@@ -87,7 +92,11 @@ npm install
 **Python依赖:**
 ```bash
 pip install -r requirements.txt
-pip install -r py-clob-client/requirements.txt
+# 安装py-clob-client（两种方式）
+# 方式一：直接安装预打包版本
+pip install py-clob-client
+# 方式二：从本地安装开发版本
+pip install -e ./py-clob-client
 ```
 
 主要Python依赖包括:
