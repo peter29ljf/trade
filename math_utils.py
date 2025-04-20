@@ -14,7 +14,7 @@ except ImportError:
 
 def calculate_initial_amount(market_price, profit):
     """
-    计算初始买入数量: AMOUNT_0 = PROFIT * (1/MARKETPRICE0 - 1)
+    计算初始买入数量: AMOUNT_0 = PROFIT / (1/MARKETPRICE0 - 1)
     
     Args:
         market_price (float): 当前市场价格
@@ -26,7 +26,7 @@ def calculate_initial_amount(market_price, profit):
     if market_price >= 1.0:
         return 0  # 当前价格>=1.0时，公式无法产生有效买入量
     
-    buy_amount = profit * (1/market_price - 1)
+    buy_amount = profit / (1/market_price - 1)
     return buy_amount
 
 def calculate_next_amount(previous_amounts, profit, market_price):
