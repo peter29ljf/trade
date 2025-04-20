@@ -92,11 +92,6 @@ npm install
 **Python依赖:**
 ```bash
 pip install -r requirements.txt
-# 安装py-clob-client（两种方式）
-# 方式一：直接安装预打包版本
-pip install py-clob-client
-# 方式二：从本地安装开发版本
-pip install -e ./py-clob-client
 ```
 
 主要Python依赖包括:
@@ -107,8 +102,7 @@ pip install -e ./py-clob-client
 - urllib3==2.0.7
 - cryptography==41.0.5
 - web3==6.11.0
-- py_order_utils==0.3.2
-- poly_eip712_structs==0.0.1
+- py-clob-client (从GitHub仓库自动安装)
 
 ### 5. 配置文件
 
