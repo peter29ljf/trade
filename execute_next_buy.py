@@ -147,8 +147,8 @@ def execute_next_buy_process(token_id, level, profit, host=None, dry_run=True, a
         else:
             print(f"未找到webhook_record.json文件，将使用默认值pre_totalamount=0")
         
-        # 使用新的计算公式: (pre_totalamount + profit) * market_price
-        next_amount = (pre_totalamount + profit) * market_price
+        # 使用新的计算公式: (pre_totalamount + profit) * (1/market_price-1)
+        next_amount = (pre_totalamount + profit) * (1/market_price-1)
         
         print(f"传入的目标利润: {profit:.4f} USDC")
         print(f"历史总量(pre_totalamount): {pre_totalamount:.4f}")
