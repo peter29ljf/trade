@@ -25,7 +25,7 @@
 ## 目录结构
 
 ```
-polymarket/
+poly/
 ├── apptest.js              # Webhook服务器
 ├── execute_initial_buy.py  # 初始买入脚本
 ├── execute_next_buy.py     # 后续级别买入脚本
@@ -36,20 +36,18 @@ polymarket/
 ├── check_environment.py    # 环境检查模块
 ├── start_server.sh         # 服务器启动脚本
 ├── requirements.txt        # Python依赖
-├── .env.example            # 环境变量配置示例
-├── data/                   # 数据目录
-│   ├── webhook_record.json # 交易记录
-│   ├── webhook_requests.log # 请求日志
-│   ├── webhook_last_response.json # 最近响应
-│   └── webhook_last_error.json # 最近错误
 ├── package.json            # Node.js项目配置
 ├── package-lock.json       # Node.js依赖锁定
+├── server.log              # 服务器运行日志
+├── server.pid              # 服务器进程ID文件
+├── data/                   # 数据目录
+│   ├── webhook_record.json        # 交易记录
+│   ├── webhook_requests.log       # 请求日志
+│   ├── webhook_last_response.json # 最近响应
+│   └── webhook_last_error.json    # 最近错误
+├── node_modules/           # Node.js依赖模块
+├── venv_py3.12/            # Python 3.12虚拟环境
 └── py-clob-client/         # Polymarket API客户端（已集成到本仓库）
-    ├── py_clob_client/     # 客户端核心代码
-    ├── examples/           # 使用示例
-    ├── tests/              # 测试代码
-    ├── requirements.txt    # 客户端依赖
-    └── setup.py            # 安装脚本
 ```
 
 ## 安装步骤
@@ -97,12 +95,16 @@ pip install -r requirements.txt
 主要Python依赖包括:
 - flask==2.3.3
 - flask-cors==4.0.0
-- python-dotenv==0.19.2
-- requests==2.32.3
+- python-dotenv==1.0.0
+- requests==2.31.0
 - urllib3==2.0.7
 - cryptography==41.0.5
 - web3==6.11.0
 - py-clob-client (从GitHub仓库自动安装)
+
+主要Node.js依赖包括:
+- express==4.18.2
+- body-parser==1.20.2
 
 ### 5. 配置文件
 
@@ -115,10 +117,9 @@ cp .env.example .env
 `.env`文件需要包含以下内容：
 ```
 # API配置
-CLOB_HOST=https://clob.polymarket.com
-CLOB_API_KEY=你的API密钥
-CLOB_SECRET=你的API密钥
-CLOB_PASS_PHRASE=你的密码
+POLYMARKET_HOST=https://clob.polymarket.com
+POLYMARKET_API_KEY=你的API密钥
+POLYMARKET_PASSWORD=你的密码
 PRIVATE_KEY=你的私钥
 WALLET_ADDRESS=你的钱包地址
 
@@ -161,6 +162,24 @@ npm start
   "profit": 20.0,
   "level": 0
 }
+```
+
+### 使用Screen保持服务器运行
+
+如果需要在SSH连接断开后保持服务器运行，可以使用Screen:
+
+```bash
+# 安装screen
+apt install -y screen
+
+# 创建新的screen会话并运行服务器
+screen -dmS n8n_session ./start_server.sh
+
+# 查看运行中的screen会话
+screen -list
+
+# 重新连接到会话
+screen -r n8n_session
 ```
 
 ### 手动执行交易
@@ -216,7 +235,7 @@ python check_environment.py
 
 系统内置了安全限制，防止意外触发大额交易：
 
-- 最大利润金额: 50 USDC
+- 最大利润金额: 2000 USDC
 - 最大买入级别: 5
 - 可选的tokenId白名单
 
@@ -252,89 +271,34 @@ curl http://localhost:5002/status
 
 **停止服务器:**
 ```bash
-kill $(cat server.pid)
+./stop_server.sh
 ```
 
-**检查服务器状态:**
+**防火墙配置:**
+如果需要从外部访问服务器，需要开放相应端口:
 ```bash
-ps -p $(cat server.pid)
+# 使用UFW开放端口
+ufw allow 5002/tcp
 ```
 
-## Python 3.12 兼容性
+## 常见问题排查
 
-所有Python脚本已适配Python 3.12，使用了如下技术确保兼容性：
-- 明确的shebang行: `#!/usr/bin/env python3.12`
-- 使用importlib.util动态导入模块
-- 使用现代Python语法特性
-- 依赖版本已针对3.12进行调整
+1. **服务器无法启动**
+   - 检查Python虚拟环境是否正确激活
+   - 检查依赖是否完整安装
+   - 查看server.log日志文件获取详细错误信息
 
-## 注意事项
+2. **权限问题**
+   - 确保所有Python脚本有执行权限: `chmod +x *.py`
+   - 确保启动脚本有执行权限: `chmod +x start_server.sh`
 
-1. **⚠️ 当前系统配置为真实交易模式，所有交易会实际执行**
-2. 如需测试，请在脚本命令中添加`--dry-run`参数
-3. 服务器启动时会显示明确的警告，标明正在执行真实交易
-4. 请定期检查日志，确保系统正常运行
-5. 确保`.env`文件中的API密钥和私钥安全保存
-6. 建议定期备份data目录下的交易记录
+3. **端口冲突**
+   - 如果端口5002已被占用，可在package.json中修改端口配置
+   - 使用`lsof -i :5002`检查是否有进程占用该端口
 
-## 必要文件清单
+4. **安全Cookie问题**
+   - 如遇到安全Cookie错误，可设置环境变量: `N8N_SECURE_COOKIE=false`
 
-系统运行必须保留以下文件：
-- apptest.js
-- execute_initial_buy.py
-- execute_next_buy.py
-- market_buy_order.py
-- market_sell_order.py
-- check_price.py
-- math_utils.py
-- check_environment.py
-- start_server.sh
-- py-clob-client/ (目录)
-- requirements.txt
-- .env (从.env.example创建)
-- data/ (目录)
-- package.json
-- package-lock.json
+## 维护与更新
 
-## 故障排除
-
-### 常见问题
-
-1. **找不到模块错误**
-   ```
-   No module named 'xxx'
-   ```
-   解决方案: 确保已安装所有依赖，包括py-clob-client的依赖:
-   ```bash
-   pip install -r requirements.txt
-   pip install -r py-clob-client/requirements.txt
-   ```
-
-2. **导入错误**
-   ```
-   ImportError: cannot import name 'xxx'
-   ```
-   解决方案: 检查Python版本是否为3.12，并确保模块路径正确:
-   ```bash
-   python --version
-   ```
-
-3. **API连接错误**
-   解决方案: 检查网络连接和代理设置，确保.env文件中的API配置正确 
-
-4. **权限错误**
-   ```
-   Permission denied: './start_server.sh'
-   ```
-   解决方案: 确保脚本有执行权限:
-   ```bash
-   chmod +x start_server.sh
-   ```
-
-## 贡献方式
-
-欢迎通过GitHub Issues和Pull Requests提交改进建议和Bug修复。
-
-## 许可
-
-本项目为私有项目，未经授权不得使用或分发。 
+定期检查依赖更新和系统日志，确保系统稳定运行。如有问题，请参考GitHub仓库的Issues部分或提交新的问题报告。 

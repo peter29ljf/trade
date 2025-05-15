@@ -60,3 +60,4 @@ Thumbs.db
 
 # 本地配置文件
 local_settings.py 
+server.log
