@@ -1,0 +1,31 @@
+{
+    "webhook": "http://your-server:port/webhook",
+    "levels": [
+        {
+            "level": 0,
+            "tokenid": "your_token_id_for_immediate_trade",
+            "profit": 5,
+            "btcprice": 0,
+            "description": "启动时立即执行的交易"
+        },
+        {
+            "level": 1,
+            "tokenid": "your_token_id_for_level_1",
+            "profit": 6,
+            "btcprice": 125000,
+            "description": "BTC达到$125,000时触发"
+        },
+        {
+            "level": 2,
+            "tokenid": "your_token_id_for_level_2", 
+            "profit": 7,
+            "btcprice": 130000,
+            "description": "BTC达到$130,000时触发"
+        }
+    ],
+    "settings": {
+        "price_check_interval": 30,
+        "max_retries": 3,
+        "timeout": 10
+    }
+} 

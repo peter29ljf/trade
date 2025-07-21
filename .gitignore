@@ -1,11 +1,14 @@
-# 敏感环境变量
+# 环境变量和配置文件
 .env
+.env.*
 *.env
-*.env.*
 
-# Python虚拟环境
-venv/
-venv_py3.12/
+# 日志文件
+*.log
+auto_trading.log
+auto_trading_records.json
+
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
@@ -26,38 +29,59 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
-# 日志文件
-logs/
-*.log
-server.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# 虚拟环境
+venv/
+venv_*/
+ENV/
+env/
+.venv/
 
-# 运行时数据
-*.pid
-server.pid
-data/*.json
-data/webhook_*.log
-
-# Node.js依赖
-node_modules/
-
-# 系统文件
-.DS_Store
-Thumbs.db
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
 
 # 备份文件
+backup/
 *.bak
 *.backup
-*.old
+
+# 临时文件
+tmp/
+temp/
 *.tmp
 
-# 本地配置文件
-local_settings.py 
-server.log
+# 密钥和私人文件
+*.key
+*.pem
+*.p12
+*.pfx
+private_key*
+secret*
+
+# Node.js (如果有)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 数据库文件
+*.db
+*.sqlite
+*.sqlite3
+
+# 系统文件
+.cache/
+.local/ 
