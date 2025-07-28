@@ -1,291 +1,241 @@
-# 🤖 Polymarket 自动交易系统
+# Polymarket 多币种自动交易系统
 
-一个基于BTC价格触发的Polymarket自动交易系统，支持多级别交易策略和累积投资模式。
+一个基于BTC、ETH、SOL价格触发的自动化Polymarket交易系统。
 
-## 📋 目录
+## 🚀 系统特性
 
-- [功能特性](#功能特性)
-- [系统架构](#系统架构)
-- [安装指南](#安装指南)
-- [配置说明](#配置说明)
-- [使用方法](#使用方法)
-- [交易策略](#交易策略)
-- [安全提醒](#安全提醒)
-- [故障排除](#故障排除)
-- [贡献指南](#贡献指南)
+### 多币种支持
+- **BTC价格监控**: 支持比特币价格级别触发
+- **ETH价格监控**: 支持以太坊价格级别触发  
+- **SOL价格监控**: 支持Solana价格级别触发
+- **独立触发机制**: 每个币种独立判断价格条件
+- **统一交易执行**: 使用相同的交易模块
 
-## ✨ 功能特性
+### 智能交易策略
+- **累积投资公式**: 自动计算基于前期投资的最优投入金额
+- **多级别配置**: 每个币种支持多个价格级别
+- **立即执行**: Level 0在系统启动时立即执行
+- **价格触发**: Level 1+等待相应币种价格信号
 
-- 🎯 **多级别交易策略**: 基于BTC价格设定多个交易触发点
-- 📊 **实时价格监控**: 持续监控BTC价格变化
-- 💰 **累积投资模式**: 根据数学公式计算最优投资金额
-- 🔄 **自动交易执行**: 触发条件满足时自动执行交易
-- 📝 **详细日志记录**: 完整的交易记录和系统日志
-- 🛡️ **安全机制**: 多重安全检查和错误处理
-- 🎛️ **灵活配置**: JSON配置文件，易于调整参数
+### 实时监控优化
+- **每秒刷新**: 价格监控从30秒优化到1秒刷新
+- **智能日志**: 每分钟记录价格状态，避免日志过多
+- **交易日志**: 完整记录所有交易触发和执行信息
 
-## 🏗️ 系统架构
+## 📦 项目结构
 
 ```
-简化版自动交易系统
-├── 价格监控模块 (SimplifiedBTCMonitor)
-├── 交易执行模块 (market_buy_order.py)
-├── 价格检查模块 (check_price.py)
-└── 配置管理模块 (setting.json)
-```
-
-**核心组件:**
-- `simplified_auto_trading.py` - 主控制系统
-- `market_buy_order.py` - 交易执行器
-- `market_sell_order.py` - 卖出执行器
-- `check_price.py` - 价格查询器
-- `start_simplified_trading.sh` - 启动脚本
-
-## 🚀 安装指南
-
-### 环境要求
-
-- Python 3.12+
-- Linux/Unix 系统
-- 网络连接
-
-### 1. 克隆项目
-
-```bash
-git clone <repository-url>
-cd polymarket-auto-trading
-```
-
-### 2. 创建虚拟环境
-
-```bash
-python3.12 -m venv venv_py3.12
-source venv_py3.12/bin/activate
-```
-
-### 3. 安装依赖
-
-```bash
-pip install -r requirements.txt
-```
-
-### 4. 配置环境变量
-
-创建 `.env` 文件并配置以下参数：
-
-```bash
-# Polymarket API配置
-POLYMARKET_API_KEY=your_api_key
-POLYMARKET_SECRET=your_secret
-POLYMARKET_PASSPHRASE=your_passphrase
-
-# 代理设置 (可选)
-HTTP_PROXY=your_proxy_if_needed
-HTTPS_PROXY=your_proxy_if_needed
+/root/poly/
+├── multi_crypto_auto_trading_fixed.py    # 主交易系统（修正版）
+├── setting_multi_crypto.json             # 多币种配置文件
+├── start_multi_crypto_trading.sh         # 启动脚本
+├── multi_crypto_trading_records.json     # 交易记录
+├── multi_crypto_auto_trading.log         # 系统日志
+├── check_price.py                        # 价格查询工具
+├── market_buy_order.py                   # 买入订单工具
+├── market_sell_order.py                  # 卖出订单工具
+├── catchprice.py                         # 价格捕获工具
+├── PRICE_MONITORING_UPDATES.md           # 价格监控优化说明
+├── requirements.txt                      # Python依赖
+├── venv_py3.12/                          # Python虚拟环境
+├── py-clob-client/                       # Polymarket客户端
+└── backup/                               # 备份文档
 ```
 
 ## ⚙️ 配置说明
 
-### setting.json 配置文件
+### 多币种配置 (`setting_multi_crypto.json`)
 
 ```json
 {
-    "webhook": "http://your-server:port/webhook",
-    "levels": [
-        {
-            "level": 0,
-            "tokenid": "token_id_for_immediate_trade",
-            "profit": 5,
-            "btcprice": 0
+    "cryptocurrencies": {
+        "BTC": {
+            "symbol": "BTCUSDT",
+            "levels": [
+                {
+                    "level": 0,
+                    "tokenid": "your_btc_token_id",
+                    "profit": 0,
+                    "trigger_price": 0
+                },
+                {
+                    "level": 1,
+                    "tokenid": "your_btc_level1_token_id",
+                    "profit": 6,
+                    "trigger_price": 125000
+                }
+            ]
         },
-        {
-            "level": 1,
-            "tokenid": "token_id_for_125k_btc",
-            "profit": 6,
-            "btcprice": 125000
+        "ETH": {
+            "symbol": "ETHUSDT", 
+            "levels": [
+                {
+                    "level": 0,
+                    "tokenid": "your_eth_token_id",
+                    "profit": 0,
+                    "trigger_price": 0
+                },
+                {
+                    "level": 1,
+                    "tokenid": "your_eth_level1_token_id",
+                    "profit": 530,
+                    "trigger_price": 3900
+                }
+            ]
         },
-        {
-            "level": 2,
-            "tokenid": "token_id_for_130k_btc",
-            "profit": 7,
-            "btcprice": 130000
+        "SOL": {
+            "symbol": "SOLUSDT",
+            "levels": [
+                // SOL配置...
+            ]
         }
-    ]
+    },
+    "settings": {
+        "price_check_interval": 1,     // 1秒刷新
+        "max_retries": 3,
+        "timeout": 10
+    }
 }
 ```
 
-**参数说明:**
-- `level`: 交易级别 (0为立即执行，1+为价格触发)
-- `tokenid`: Polymarket代币ID
-- `profit`: 目标利润金额 (USDC)
-- `btcprice`: BTC触发价格 (0表示立即执行)
+### 配置参数说明
 
-### plan.md 交易计划
+- **level**: 价格级别 (0=立即执行, 1+=价格触发)
+- **tokenid**: Polymarket代币ID
+- **profit**: 目标利润 (美元)
+- **trigger_price**: 触发价格 (美元，level 0设为0)
 
-详细说明了各级别的交易策略和计算公式：
-- Level 0: 启动时立即执行
-- Level 1+: 等待BTC价格达到触发点
+## 🚀 快速开始
 
-## 🎮 使用方法
-
-### 快速启动
-
-```bash
-# 给启动脚本执行权限
-chmod +x start_simplified_trading.sh
-
-# 启动系统
-./start_simplified_trading.sh
-```
-
-### 手动启动
+### 1. 环境准备
 
 ```bash
 # 激活虚拟环境
 source venv_py3.12/bin/activate
 
-# 直接运行
-python simplified_auto_trading.py
-```
-
-### 后台运行
-
-```bash
-# 使用screen后台运行
-screen -S trading
-./start_simplified_trading.sh
-# Ctrl+A+D 分离会话
-
-# 重新连接
-screen -r trading
-```
-
-## 📈 交易策略
-
-### 累积投资公式
-
-系统使用以下公式计算每级别的投资金额：
-
-```
-amount = (profit + previous_amount) / (1/price - 1)
-```
-
-其中：
-- `profit`: 当前级别目标利润
-- `previous_amount`: 之前级别投资总额
-- `price`: 当前代币价格
-
-### 触发机制
-
-1. **Level 0**: 系统启动后立即执行
-2. **Level 1+**: 监控BTC价格，达到设定价格时触发
-3. **价格检查**: 每30秒检查一次BTC价格
-4. **交易执行**: 满足条件时自动计算并执行交易
-
-## 🔒 安全提醒
-
-⚠️ **重要安全提示:**
-
-- 这是真实交易系统，涉及实际资金
-- 开始前请进行小额测试
-- 确保API密钥安全
-- 定期检查交易记录
-- 保持足够的USDC余额
-- 建议设置合理的止损机制
-
-## 📊 监控和日志
-
-### 日志文件
-
-- `auto_trading.log` - 系统运行日志
-- `auto_trading_records.json` - 交易记录
-
-### 实时监控
-
-```bash
-# 查看实时日志
-tail -f auto_trading.log
-
-# 检查交易记录
-cat auto_trading_records.json | jq .
-```
-
-## 🛠️ 故障排除
-
-### 常见问题
-
-**1. 虚拟环境未找到**
-```bash
-python3.12 -m venv venv_py3.12
-source venv_py3.12/bin/activate
-```
-
-**2. 依赖安装失败**
-```bash
-pip install --upgrade pip
+# 检查依赖
 pip install -r requirements.txt
 ```
 
-**3. API连接失败**
-- 检查`.env`文件配置
-- 验证API密钥有效性
-- 检查网络连接
-
-**4. 价格获取失败**
-- 检查price API端点
-- 验证代理设置
-- 检查防火墙配置
-
-### 调试模式
+### 2. 配置设置
 
 ```bash
-# 开启详细日志
-export PYTHONPATH=.
-python simplified_auto_trading.py --debug
+# 编辑多币种配置
+nano setting_multi_crypto.json
+
+# 设置环境变量 (API密钥等)
+nano .env
 ```
 
-## 📁 项目结构
+### 3. 启动系统
 
-```
-polymarket-auto-trading/
-├── README.md                    # 项目说明
-├── requirements.txt             # 依赖包
-├── setting.json                 # 配置文件
-├── plan.md                      # 交易计划
-├── .env                         # 环境变量
-├── start_simplified_trading.sh  # 启动脚本
-├── simplified_auto_trading.py   # 主程序
-├── market_buy_order.py          # 买入模块
-├── market_sell_order.py         # 卖出模块
-├── check_price.py               # 价格查询
-├── py-clob-client/              # Polymarket客户端
-├── venv_py3.12/                 # Python虚拟环境
-├── auto_trading.log             # 运行日志
-├── auto_trading_records.json    # 交易记录
-└── backup/                      # 备份文件
+```bash
+# 使用启动脚本
+./start_multi_crypto_trading.sh
+
+# 或直接运行
+python multi_crypto_auto_trading_fixed.py
 ```
 
-## 🤝 贡献指南
+## 🔧 工具使用
 
-1. Fork 项目
-2. 创建功能分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 创建 Pull Request
+### 价格查询
+```bash
+# 查询特定token价格
+python check_price.py <token_id>
+```
 
-## 📄 许可证
+### 手动交易
+```bash
+# 买入订单
+python market_buy_order.py <token_id> <amount>
 
-本项目仅供学习和研究使用。使用时请遵守相关法律法规和平台条款。
+# 卖出订单  
+python market_sell_order.py <token_id> <amount>
+```
 
-## ⚠️ 免责声明
+### 价格监控
+```bash
+# 实时价格捕获
+python catchprice.py
+```
 
-- 本软件仅供教育和研究目的
-- 使用本软件进行实际交易的风险由用户自行承担
-- 开发者不对任何交易损失负责
-- 请在充分了解风险的情况下使用
+## 📊 监控功能
 
----
+### 实时监控
+- **BTC价格监控**: 触发Level 1+交易
+- **ETH价格监控**: 触发Level 1+交易
+- **SOL价格监控**: 触发Level 1+交易
+- **实时价格更新**: 每秒刷新，每分钟记录日志
+- **独立交易记录**: 按币种分类记录
 
-**联系方式**: 如有问题或建议，请提交Issue或Pull Request。
+### 日志分析
+```bash
+# 查看实时日志
+tail -f multi_crypto_auto_trading.log
 
-**最后更新**: 2024年7月 
+# 查看交易记录
+cat multi_crypto_trading_records.json
+```
+
+## 💰 投资策略
+
+### 累积投资公式
+系统使用修正的累积投资公式：
+
+```
+Level 0: amount = profit / (1/price - 1)
+Level 1+: amount = (profit + previous_total) / (1/price - 1)
+```
+
+### 多币种独立执行
+- 每个币种独立监控价格
+- 独立计算投资金额
+- 独立记录交易历史
+- 统一的交易执行引擎
+
+## ⚠️ 重要提醒
+
+1. **真实交易系统**: 请确保配置正确
+2. **Level 0立即执行**: 系统启动后立即执行所有币种的Level 0
+3. **价格触发**: Level 1+等待相应币种价格信号
+4. **小额测试**: 建议先进行小额测试
+5. **实时监控**: 系统每秒检查价格变化
+6. **紧急停止**: 按Ctrl+C可随时停止
+
+## 📈 性能优化
+
+### 价格监控优化
+- **刷新频率**: 从30秒优化到1秒
+- **日志优化**: 价格监控日志每分钟记录
+- **交易日志**: 保持详细的交易信息记录
+
+详细优化信息请查看: [PRICE_MONITORING_UPDATES.md](PRICE_MONITORING_UPDATES.md)
+
+## 🔍 Token ID获取
+
+如需查找特定市场的Token ID，请参考：
+
+1. **浏览器开发者工具**
+   - 访问 polymarket.com
+   - F12 → Network → 查找 `clob.polymarket.com/book?token_id=` 请求
+
+2. **使用查询工具**
+   ```bash
+   python check_price.py <token_id>  # 验证token有效性
+   ```
+
+## 📞 支持
+
+如遇问题，请检查：
+1. 配置文件语法是否正确
+2. Token ID是否有效
+3. 网络连接是否正常
+4. API密钥是否配置
+
+## 📚 备份文档
+
+`backup/` 目录包含：
+- 历史文档和说明
+- 旧版本的配置示例
+- 系统演进的参考资料 

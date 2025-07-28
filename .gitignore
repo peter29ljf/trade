@@ -1,13 +1,3 @@
-# 环境变量和配置文件
-.env
-.env.*
-*.env
-
-# 日志文件
-*.log
-auto_trading.log
-auto_trading_records.json
-
 # Python
 __pycache__/
 *.py[cod]
@@ -31,57 +21,42 @@ wheels/
 *.egg
 MANIFEST
 
-# 虚拟环境
+# Virtual Environment
+venv_py3.12/
 venv/
-venv_*/
-ENV/
 env/
-.venv/
+ENV/
+
+# Environment variables
+.env
+*.env
+
+# Logs and backups
+*.log
+logs_backup_*.log
+multi_crypto_auto_trading.log
+
+# Trading records and data
+multi_crypto_trading_records.json
+trading_records_*.json
+
+# Backup directory
+backup/
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
 
-# macOS
+# OS
 .DS_Store
-
-# Windows
 Thumbs.db
-ehthumbs.db
-Desktop.ini
 
-# 备份文件
-backup/
-*.bak
-*.backup
-
-# 临时文件
-tmp/
-temp/
+# Temporary files
 *.tmp
+*.temp
+/tmp/
 
-# 密钥和私人文件
-*.key
-*.pem
-*.p12
-*.pfx
-private_key*
-secret*
-
-# Node.js (如果有)
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# 数据库文件
-*.db
-*.sqlite
-*.sqlite3
-
-# 系统文件
-.cache/
-.local/ 
+# Screen output
+screen_output.txt 
