@@ -88,7 +88,7 @@ def execute_market_buy(token_id, amount, host=None, level=None, profit=None):
         # 初始化客户端
         chain_id = 137  # Polygon Mainnet
         # 资金钱包地址
-        funder_wallet = "0xCE1001c32c78b62348Ba0EE9d21238F1Fe0b51d4"
+        funder_wallet = os.getenv("WALLET_ADDRESS")
         print(f"使用资金钱包: {funder_wallet}")
         
         client = ClobClient(

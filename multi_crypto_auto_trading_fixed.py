@@ -279,8 +279,27 @@ class MultiCryptoPriceMonitor:
             )
             
             if result.returncode == 0:
-                logger.info(f"✅ {crypto}买入订单执行成功")
-                return {"success": True, "output": result.stdout}
+                # 检查输出内容中是否包含错误信息
+                if "执行市场买单时出错" in result.stdout:
+                    error_msg = result.stdout.split("执行市场买单时出错: ")[-1].strip()
+                    logger.error(f"❌ {crypto}买入订单执行失败: {error_msg}")
+                    return {"success": False, "error": error_msg}
+                elif "执行市场卖单时出错" in result.stdout:
+                    error_msg = result.stdout.split("执行市场卖单时出错: ")[-1].strip()
+                    logger.error(f"❌ {crypto}卖出订单执行失败: {error_msg}")
+                    return {"success": False, "error": error_msg}
+                elif "完成!" in result.stdout and "错误" not in result.stdout:
+                    logger.info(f"✅ {crypto}买入订单执行成功")
+                    return {"success": True, "output": result.stdout}
+                else:
+                    # 检查其他可能的错误信息
+                    if "错误" in result.stdout or "失败" in result.stdout or "Exception" in result.stdout:
+                        error_msg = result.stdout
+                        logger.error(f"❌ {crypto}买入订单执行失败: {error_msg}")
+                        return {"success": False, "error": error_msg}
+                    else:
+                        logger.info(f"✅ {crypto}买入订单执行成功")
+                        return {"success": True, "output": result.stdout}
             else:
                 logger.error(f"❌ {crypto}买入订单执行失败: {result.stderr}")
                 return {"success": False, "error": result.stderr}
@@ -394,12 +413,8 @@ class MultiCryptoPriceMonitor:
                 f.write(f"# 日志已于 {datetime.now().isoformat()} 清理\n")
                 f.writelines(important_lines)
             
-            # 备份完整日志到历史文件
-            backup_file = Path(f"/root/poly/logs_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
-            if len(lines) > 2000:  # 只有当日志较大时才备份
-                with open(backup_file, 'w', encoding='utf-8') as f:
-                    f.writelines(lines)
-                logger.info(f"📦 完整日志已备份到: {backup_file.name}")
+            # 不再创建备份日志文件，直接清理
+            logger.info(f"📦 日志已清理，不再创建备份文件")
             
             self.last_log_cleanup = datetime.now()
             logger.info(f"✅ 日志清理完成，保留 {len(important_lines)} 行重要日志")

@@ -3,15 +3,41 @@ import os
 import sys
 import secrets
 
-def generate_api_credentials():
+# 添加py-clob-client到路径
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+PY_CLOB_CLIENT_DIR = os.path.join(PROJECT_ROOT, "py-clob-client")
+if os.path.exists(PY_CLOB_CLIENT_DIR) and PY_CLOB_CLIENT_DIR not in sys.path:
+    sys.path.append(PY_CLOB_CLIENT_DIR)
+
+def derive_api_credentials(private_key):
+    """使用私钥派生正确的API凭据"""
+    try:
+        from py_clob_client.client import ClobClient
+        
+        host = 'https://clob.polymarket.com'
+        chain_id = 137  # Polygon Mainnet
+        client = ClobClient(host, key=private_key, chain_id=chain_id)
+        
+        print("正在派生API凭据...")
+        creds = client.derive_api_key()
+        
+        return creds.api_key, creds.api_secret, creds.api_passphrase
+    except Exception as e:
+        print(f"派生API凭据失败: {e}")
+        print("将使用随机生成的凭据（可能需要手动更新）")
+        return generate_random_api_credentials()
+
+def generate_random_api_credentials():
+    """生成随机API凭据（备用方案）"""
     api_key = str(secrets.token_hex(16))[:8] + '-' + str(secrets.token_hex(16))[:4] + '-' + str(secrets.token_hex(16))[:4] + '-' + str(secrets.token_hex(16))[:4] + '-' + str(secrets.token_hex(16))[:12]
-    secret_key = secrets.token_urlsafe(32)
+    # 生成正确的base64格式的secret，确保没有特殊字符
+    secret_key = secrets.token_hex(32)  # 使用hex格式，然后转换为base64
     pass_phrase = secrets.token_hex(32)
     return api_key, secret_key, pass_phrase
 
 def generate_env_file(private_key, wallet_address):
     
-    api_key, secret_key, pass_phrase = generate_api_credentials()
+    api_key, secret_key, pass_phrase = derive_api_credentials(private_key)
     
     env_content = f"""# API 凭据
 CLOB_API_KEY={api_key}
@@ -74,8 +100,16 @@ POLYMARKET_API_PASSPHRASE=
 def main():
     print("=== Polymarket 环境配置生成器 ===\n")
     
-    private_key = input("请输入私钥 (可以带或不带 0x 前缀): ").strip()
-    wallet_address = input("请输入钱包地址: ").strip()
+    # 检查命令行参数
+    if len(sys.argv) == 3:
+        private_key = sys.argv[1].strip()
+        wallet_address = sys.argv[2].strip()
+        print(f"使用命令行参数:")
+        print(f"私钥: {private_key[:8]}...")
+        print(f"钱包地址: {wallet_address}")
+    else:
+        private_key = input("请输入私钥 (可以带或不带 0x 前缀): ").strip()
+        wallet_address = input("请输入钱包地址: ").strip()
     
     if not private_key:
         print("错误：私钥不能为空")

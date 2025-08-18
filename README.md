@@ -155,8 +155,8 @@ source venv_py3.12/bin/activate
 # 检查依赖
 pip install -r requirements.txt
 
-# 生成环境变量
-python generate_env.py
+# 生成环境变量（自动派生API凭据）
+python generate_env.py "你的私钥" "你的钱包地址"
 ```
 
 ### 2. 配置设置
@@ -204,8 +204,11 @@ python catchprice.py
 
 ### 环境配置
 ```bash
-# 生成环境变量模板
+# 生成环境变量模板（交互式）
 python generate_env.py
+
+# 命令行方式生成（推荐）
+python generate_env.py "你的私钥" "你的钱包地址"
 ```
 
 ## 📊 监控功能
