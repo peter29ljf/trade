@@ -73,6 +73,9 @@ class MultiCryptoPriceMonitor:
         for crypto in self.crypto_levels.keys():
             self.investment_records[crypto] = []
         
+        # 价格历史记录，用于判断跨越触发
+        self.price_history: Dict[str, float] = {}
+        
         # 日志清理
         self.last_log_cleanup = datetime.now()
         self.log_cleanup_interval = timedelta(hours=1)  # 1小时清理一次
@@ -169,18 +172,53 @@ class MultiCryptoPriceMonitor:
             if level.level in self.triggered_levels[crypto]:
                 continue
                 
-            # Level 0 立即触发
+            # Level 0 立即触发（不管价格直接买入）
             if level.level == 0:
                 triggered_levels.append(level)
                 self.triggered_levels[crypto].add(level.level)
-                logger.info(f"🎯 {crypto} Level {level.level} 立即触发")
-            # 其他级别检查价格条件
-            elif current_price >= level.trigger_price:
+                logger.info(f"🎯 {crypto} Level {level.level} 立即触发（无价格条件）")
+            # Level 1+ 检查价格跨越条件
+            elif level.level >= 1 and self.check_price_crossover(crypto, current_price, level.trigger_price):
                 triggered_levels.append(level)
                 self.triggered_levels[crypto].add(level.level)
-                logger.info(f"🚀 {crypto} Level {level.level} 价格触发: ${current_price:,.2f} >= ${level.trigger_price:,.2f}")
+                logger.info(f"🚀 {crypto} Level {level.level} 价格跨越触发: ${current_price:,.2f} 跨越 ${level.trigger_price:,.2f}")
         
         return triggered_levels
+    
+    def check_price_crossover(self, crypto: str, current_price: float, trigger_price: float) -> bool:
+        """检查价格是否跨越触发价格（支持双向跨越）"""
+        # 获取上一次的价格
+        previous_price = self.price_history.get(crypto)
+        
+        if previous_price is None:
+            # 第一次检查，不触发，只记录价格
+            self.price_history[crypto] = current_price
+            logger.info(f"🔄 {crypto} 初始化价格历史: ${current_price:,.2f}")
+            return False
+        
+        # 避免从异常价格（如0或过于离谱的价格）开始的跨越
+        if previous_price <= 0 or abs(current_price - previous_price) / max(current_price, previous_price) > 0.5:
+            # 价格变化过大（超过50%），可能是系统重启或异常，不触发跨越
+            self.price_history[crypto] = current_price
+            logger.info(f"🔄 {crypto} 价格变化过大，重置历史: ${previous_price:,.2f} -> ${current_price:,.2f}")
+            return False
+        
+        # 检查是否发生跨越
+        # 情况1：价格从下方突破到上方（上涨跨越）
+        if previous_price <= trigger_price < current_price:
+            self.price_history[crypto] = current_price
+            logger.info(f"📈 {crypto} 价格上涨跨越: ${previous_price:,.2f} -> ${current_price:,.2f} 跨越 ${trigger_price:,.2f}")
+            return True
+        
+        # 情况2：价格从上方跌破到下方（下跌跨越）
+        if previous_price >= trigger_price > current_price:
+            self.price_history[crypto] = current_price
+            logger.info(f"📉 {crypto} 价格下跌跨越: ${previous_price:,.2f} -> ${current_price:,.2f} 跨越 ${trigger_price:,.2f}")
+            return True
+        
+        # 更新价格历史
+        self.price_history[crypto] = current_price
+        return False
     
     def get_previous_investment_total(self, crypto: str, up_to_level: int) -> float:
         """获取指定级别之前的总投资额 (从实际交易记录)"""

@@ -1,6 +1,6 @@
-# Polymarket 多币种自动交易系统 v2.1
+# Polymarket 多币种自动交易系统 v3.0
 
-一个基于BTC、ETH、SOL价格触发的自动化Polymarket交易系统，支持实时监控、智能投资策略和webhook通知。
+一个基于BTC、ETH、SOL价格触发的自动化Polymarket交易系统，支持实时监控、智能投资策略和价格跨越检测。
 
 ## 🚀 系统特性
 
@@ -11,23 +11,23 @@
 - **独立触发机制**: 每个币种独立判断价格条件
 - **统一交易执行**: 使用相同的交易模块
 
-### 智能交易策略
-- **累积投资公式**: 自动计算基于前期投资的最优投入金额
-- **多级别配置**: 每个币种支持多个价格级别
-- **立即执行**: Level 0在系统启动时立即执行
-- **价格触发**: Level 1+等待相应币种价格信号
+### 智能价格跨越机制
+- **跨越检测**: 检测价格从一侧跨越到另一侧触发交易
+- **重启重置**: 程序重启时自动重置所有触发状态
+- **历史记录**: 维护价格历史用于跨越判断
+- **异常处理**: 自动处理价格异常波动
 
 ### 实时监控优化
 - **每秒刷新**: 价格监控从30秒优化到1秒刷新
-- **智能日志**: 每分钟记录价格状态，避免日志过多
+- **实时日志**: 每秒记录价格状态和交易信息
 - **交易日志**: 完整记录所有交易触发和执行信息
-- **自动日志清理**: 每小时自动清理日志文件，保留重要信息
+- **API优化**: 支持Coinbase API，避免地区限制
 
 ### 系统稳定性
-- **API限制处理**: 解决429/451错误，自动重试机制
-- **错误恢复**: 网络异常自动重连
-- **webhook通知**: 集成外部通知系统
+- **Screen支持**: 支持后台运行，程序重启管理
+- **错误恢复**: 网络异常自动重连，API错误处理
 - **配置热更新**: 支持运行时配置调整
+- **日志管理**: 智能日志清理，避免磁盘空间问题
 
 ## 📦 项目结构
 
@@ -43,14 +43,13 @@
 ├── market_sell_order.py                  # 卖出订单工具
 ├── catchprice.py                         # 价格捕获工具
 ├── generate_env.py                       # 环境变量生成工具
-├── PRICE_MONITORING_UPDATES.md           # 价格监控优化说明
 ├── requirements.txt                      # Python依赖
-├── venv_py3.12/                          # Python虚拟环境
+├── venv/                                 # Python虚拟环境
 ├── py-clob-client/                       # Polymarket客户端
-└── backup/                               # 备份文档
+└── docs/                                 # 文档目录
 ```
 
-## ⚙️ 配置说明
+## ⚙️ 当前配置
 
 ### 多币种配置 (`setting_multi_crypto.json`)
 
@@ -63,26 +62,26 @@
             "levels": [
                 {
                     "level": 0,
-                    "tokenid": "75548853773826042938037269403961620968895595455588421031754896226233782822511",
-                    "profit": 500,
-                    "trigger_price": 0
+                    "tokenid": "46892948147677499361707760015458275278085567956491879132639051425730297294426",
+                    "profit": 0,
+                    "trigger_price": 120000
                 },
                 {
                     "level": 1,
-                    "tokenid": "59927336947705179086643351156863294391159498317821945309659158441498874763255",
-                    "profit": 2500,
-                    "trigger_price": 116900
+                    "tokenid": "66558867756905585659040922208977402195771898675559656012123222920529675780034",
+                    "profit": 3000,
+                    "trigger_price": 110900
                 },
                 {
                     "level": 2,
-                    "tokenid": "106480746132572789966336636468021047738054338780537897234069209863392176627209",
-                    "profit": 2500,
-                    "trigger_price": 119900
+                    "tokenid": "26588978377210647735520853243231372461065624545828555407481471791355488037951",
+                    "profit": 3000,
+                    "trigger_price": 104900
                 }
             ]
         },
         "ETH": {
-            "symbol": "ETHUSDT", 
+            "symbol": "ETHUSDT",
             "levels": [
                 {
                     "level": 0,
@@ -139,10 +138,10 @@
 ### 配置参数说明
 
 - **webhook**: 外部通知系统URL
-- **level**: 价格级别 (0=立即执行, 1+=价格触发)
+- **level**: 价格级别 (0=立即执行, 1+=价格跨越触发)
 - **tokenid**: Polymarket代币ID
 - **profit**: 目标利润 (美元)
-- **trigger_price**: 触发价格 (美元，level 0设为0)
+- **trigger_price**: 触发价格 (美元，level 0立即执行)
 
 ## 🚀 快速开始
 
@@ -150,13 +149,14 @@
 
 ```bash
 # 激活虚拟环境
-source venv_py3.12/bin/activate
+source venv/bin/activate
 
 # 检查依赖
 pip install -r requirements.txt
 
-# 生成环境变量（自动派生API凭据）
-python generate_env.py "你的私钥" "你的钱包地址"
+# 配置环境变量
+cp .env.example .env
+nano .env
 ```
 
 ### 2. 配置设置
@@ -165,18 +165,36 @@ python generate_env.py "你的私钥" "你的钱包地址"
 # 编辑多币种配置
 nano setting_multi_crypto.json
 
-# 设置环境变量 (API密钥等)
-nano .env
+# 设置Polymarket API凭据
+export PRIVATE_KEY="你的私钥"
+export CLOB_API_KEY="你的API密钥"
+export CLOB_SECRET="你的API密钥"
+export CLOB_PASS_PHRASE="你的密钥短语"
 ```
 
 ### 3. 启动系统
 
 ```bash
-# 使用启动脚本
-./start_multi_crypto_trading.sh
+# 使用Screen后台运行（推荐）
+screen -S multi_crypto_trading -d -m bash -c "cd /root/poly && source venv/bin/activate && python multi_crypto_auto_trading_fixed.py"
 
 # 或直接运行
 python multi_crypto_auto_trading_fixed.py
+```
+
+### 4. 管理Screen会话
+
+```bash
+# 查看运行中的会话
+screen -list
+
+# 连接到会话
+screen -r multi_crypto_trading
+
+# 分离会话 (在会话内按 Ctrl+A, D)
+
+# 停止会话
+screen -S multi_crypto_trading -X quit
 ```
 
 ## 🔧 工具使用
@@ -202,24 +220,21 @@ python market_sell_order.py <token_id> <amount>
 python catchprice.py
 ```
 
-### 环境配置
-```bash
-# 生成环境变量模板（交互式）
-python generate_env.py
-
-# 命令行方式生成（推荐）
-python generate_env.py "你的私钥" "你的钱包地址"
-```
-
 ## 📊 监控功能
 
 ### 实时监控
-- **BTC价格监控**: 触发Level 1+交易
-- **ETH价格监控**: 触发Level 1+交易
-- **SOL价格监控**: 触发Level 1+交易
-- **实时价格更新**: 每秒刷新，每分钟记录日志
-- **独立交易记录**: 按币种分类记录
-- **webhook通知**: 交易事件实时通知
+- **BTC价格监控**: 当前 $113,638 → 触发 $110,900 (Level 1)
+- **ETH价格监控**: 当前 $4,165 → 触发 $4,000 (Level 1)
+- **SOL价格监控**: 当前 $181 → 触发 $210 (Level 1)
+- **实时价格更新**: 每秒刷新，实时记录
+- **跨越检测**: 智能价格跨越触发机制
+
+### 价格跨越机制
+```
+触发条件：价格从一侧跨越触发线到另一侧
+示例：BTC从 $113,577 上涨跨越 $113,600 → 触发交易
+重启重置：程序重启后所有触发状态清零
+```
 
 ### 日志分析
 ```bash
@@ -229,8 +244,8 @@ tail -f multi_crypto_auto_trading.log
 # 查看交易记录
 cat multi_crypto_trading_records.json
 
-# 查看日志清理状态
-grep "日志清理" multi_crypto_auto_trading.log
+# 查看特定币种触发记录
+grep "BTC.*触发\|BTC.*跨越\|BTC.*成功" multi_crypto_auto_trading.log
 ```
 
 ## 💰 投资策略
@@ -251,86 +266,90 @@ Level 1+: amount = (profit + previous_total) / (1/price - 1)
 
 ## 🔄 系统优化
 
-### v2.1 最新更新
-- **自动日志清理**: 每小时自动清理日志文件，保留重要信息
-- **webhook集成**: 支持外部通知系统
-- **API限制处理**: 优化429/451错误处理
-- **配置热更新**: 支持运行时配置调整
-- **环境变量工具**: 新增环境配置生成工具
+### v3.0 最新更新
+- **价格跨越机制**: 智能检测价格跨越触发条件
+- **重启重置逻辑**: 程序重启时自动重置触发状态
+- **API源优化**: 从CoinGecko→Binance→Coinbase API
+- **Screen集成**: 完善的后台运行支持
+- **错误检测增强**: 改进交易成功/失败判断逻辑
 
 ### 性能优化
 - **刷新频率**: 从30秒优化到1秒
-- **日志优化**: 价格监控日志每分钟记录
-- **交易日志**: 保持详细的交易信息记录
-- **内存管理**: 自动清理过期日志数据
+- **日志优化**: 实时记录价格和交易状态
+- **内存管理**: 智能日志清理机制
+- **并发处理**: 支持多币种并发价格获取
 
-详细优化信息请查看: [PRICE_MONITORING_UPDATES.md](PRICE_MONITORING_UPDATES.md)
+## 📈 当前运行状态
+
+### 系统信息
+- **系统版本**: v3.0 (修正版)
+- **支持币种**: BTC, ETH, SOL
+- **监控频率**: 1秒/次
+- **运行环境**: Screen后台会话
+- **API源**: Coinbase Exchange Rates
+
+### 最新交易记录
+- **BTC Level 0**: ✅ 已触发执行 (04:23:06)
+- **BTC Level 1**: ✅ 已触发执行 (04:03:08)
+- **价格跨越**: $113,577 → $113,601 跨越 $113,600
+- **当前状态**: 运行正常，等待下一个触发条件
+
+### 触发状态
+- **BTC**: Level 0,1已触发，Level 2等待跌破$104,900
+- **ETH**: Level 0已触发，Level 1等待涨破$4,000
+- **SOL**: Level 0已触发，Level 1等待涨破$210
 
 ## ⚠️ 重要提醒
 
 1. **真实交易系统**: 请确保配置正确
-2. **Level 0立即执行**: 系统启动后立即执行所有币种的Level 0
-3. **价格触发**: Level 1+等待相应币种价格信号
+2. **价格跨越机制**: 需要价格跨越触发线才会执行
+3. **重启重置**: 程序重启后触发状态清零，可重新触发
 4. **小额测试**: 建议先进行小额测试
 5. **实时监控**: 系统每秒检查价格变化
-6. **紧急停止**: 按Ctrl+C可随时停止
-7. **日志管理**: 系统自动清理日志，无需手动维护
+6. **Screen管理**: 使用Screen进行后台运行管理
+7. **API凭据**: 确保Polymarket API凭据配置正确
 
-## 📈 系统状态
+## 🔍 API认证要求
 
-### 当前运行状态
-- **系统版本**: v2.1 (修正版)
-- **支持币种**: BTC, ETH, SOL
-- **监控频率**: 1秒/次
-- **日志清理**: 每小时自动清理
-- **webhook通知**: 已集成
+Polymarket CLOB API需要L1+L2双重认证：
 
-### 最新交易记录
-系统已成功执行多次交易，包括：
-- BTC Level 0-2 交易
-- ETH Level 0-2 交易  
-- SOL Level 0-2 交易
+### L1认证 (私钥签名)
+- 用于创建API密钥
+- 签名交易订单
+- EIP-712标准签名
 
-## 🔍 Token ID获取
-
-如需查找特定市场的Token ID，请参考：
-
-1. **浏览器开发者工具**
-   - 访问 polymarket.com
-   - F12 → Network → 查找 `clob.polymarket.com/book?token_id=` 请求
-
-2. **使用查询工具**
-   ```bash
-   python check_price.py <token_id>  # 验证token有效性
-   ```
+### L2认证 (API凭据)
+- API Key + Secret + Passphrase
+- 访问受保护接口
+- 执行交易操作
 
 ## 📞 支持
 
 如遇问题，请检查：
 1. 配置文件语法是否正确
 2. Token ID是否有效
-3. 网络连接是否正常
-4. API密钥是否配置
-5. webhook URL是否可访问
-
-## 📚 备份文档
-
-`backup/` 目录包含：
-- 历史文档和说明
-- 旧版本的配置示例
-- 系统演进的参考资料
+3. API凭据是否配置
+4. 网络连接是否正常
+5. Screen会话是否正常运行
 
 ## 🆕 更新日志
+
+### v3.0 (2025-08-20)
+- ✅ 实现价格跨越触发机制
+- ✅ 添加程序重启触发状态重置
+- ✅ 优化API源从CoinGecko到Coinbase
+- ✅ 增强交易成功/失败判断逻辑
+- ✅ 完善Screen后台运行支持
+- ✅ 改进错误检测和处理机制
 
 ### v2.1 (2025-08-06)
 - ✅ 添加自动日志清理功能
 - ✅ 集成webhook通知系统
 - ✅ 优化API限制处理
 - ✅ 新增环境变量生成工具
-- ✅ 改进错误恢复机制
 
 ### v2.0 (2025-07-28)
 - ✅ 修正投资公式
 - ✅ 优化价格监控频率
 - ✅ 添加多币种支持
-- ✅ 实现智能日志管理 
+- ✅ 实现智能日志管理
